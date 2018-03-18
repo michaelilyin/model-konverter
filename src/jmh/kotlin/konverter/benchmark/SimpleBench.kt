@@ -11,9 +11,10 @@ import java.time.LocalDate
 import org.openjdk.jmh.runner.options.OptionsBuilder
 
 @State(Scope.Benchmark)
-@BenchmarkMode(Mode.All)
-@Warmup(iterations = 3)
-@Measurement(iterations = 2, batchSize = 2)
+@BenchmarkMode(Mode.Throughput, Mode.AverageTime, Mode.SingleShotTime)
+@Warmup(iterations = 10)
+@Measurement(iterations = 10, batchSize = 10)
+@Fork(2)
 open class SimpleBench {
 
     val converter = KonverterFactory create {
