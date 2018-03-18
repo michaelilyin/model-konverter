@@ -5,6 +5,7 @@ import konverter.processor.Processor
 import konverter.strategy.AutoDetectionStrategy
 import mu.KLogging
 import kotlin.reflect.KClass
+import java.util.function.Function as JFunction
 
 class Konverter internal constructor(
         definitions: List<MappingDefinition<*, *>>
@@ -15,20 +16,23 @@ class Konverter internal constructor(
     private val processors: MutableMap<KClass<*>, MutableMap<KClass<*>, Processor<*, *>>> = mutableMapOf()
     private val dynamicDetectionStrategy = AutoDetectionStrategy()
 
+    private val mapFactory: JFunction<KClass<*>, MutableMap<KClass<*>, Processor<*,*>>> = JFunction { mutableMapOf() }
+
     init {
         definitions.forEach {
-            val targets = processors.computeIfAbsent(it.source, { mutableMapOf() })
+            val targets = processors.computeIfAbsent(it.source, mapFactory)
             targets[it.target] = it.processor
         }
     }
 
     @Suppress("UNCHECKED_CAST")
     fun <S : Any, T : Any> convert(source: S, target: KClass<T>): T {
-        val targets = processors.computeIfAbsent(source::class, { mutableMapOf() })
-        var processor = targets[target] as Processor<in S, T>?
+        val targets = processors[source::class]
+        var processor = targets?.get(target) as Processor<in S, T>?
         if (processor == null) {
+            val nonnullTargets = processors.computeIfAbsent(source::class, mapFactory)
             processor = generateProcessor(source::class, target) as Processor<S, T>
-            targets[target] = processor
+            nonnullTargets[target] = processor
         }
         return processor.process(source)
     }

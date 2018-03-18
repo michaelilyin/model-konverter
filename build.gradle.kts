@@ -1,6 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileOutputStream
-import java.net.URI
 
 buildscript {
     var kotlin_version: String by extra
@@ -9,12 +8,12 @@ buildscript {
     repositories {
         mavenCentral()
         maven {
-            url = URI("https://plugins.gradle.org/m2/")
+            setUrl("https://plugins.gradle.org/m2/")
         }
     }
     dependencies {
         classpath(kotlinModule("gradle-plugin", kotlin_version))
-        classpath("me.champeau.gradle:jmh-gradle-plugin:0.4.5")
+        classpath("me.champeau.gradle:jmh-gradle-plugin:0.4.4")
     }
 }
 
@@ -48,8 +47,7 @@ dependencies {
     testCompile("org.junit.platform:junit-platform-runner:$junit_platform_runner")
     testCompile("com.winterbe:expekt:$expekt")
     testCompile("ch.qos.logback:logback-classic:$logback_classic")
-    compile("org.openjdk.jmh:jmh-core:1.20")
-    //https://habrahabr.ru/post/349914/
+    testCompile("org.openjdk.jmh:jmh-core:1.20")
 }
 
 tasks.withType<KotlinCompile> {

@@ -2,6 +2,7 @@ package konverter.strategy
 
 import konverter.processor.Processor
 import kotlin.reflect.KClass
+import kotlin.reflect.KParameter
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 
@@ -24,15 +25,23 @@ class ConstructorBasedStrategy : AlgorithmStrategy {
             param to property
         }.toMap()
 
-        return object : Processor<S, D> {
+        val conversionKeys = conversionMap.keys.toTypedArray()
+        val conversionProperties = conversionKeys.asSequence().map { conversionMap[it] } .toList().toTypedArray()
+        val propertySize = conversionKeys.size
+
+        return object : Processor<S, D>() {
             override fun process(from: S): D {
-                val args = conversionMap.asSequence()
-                        .map {
-                            val param = it.key
-                            val value = it.value.get(from)
-                            param to value
-                        }.toMap()
-                return constructor.callBy(args)
+                val args = borrowMap()
+                for (i in 0 until propertySize) {
+                    val key = conversionKeys[i]
+                    val value = conversionProperties[i]!!.get(from)
+                    args[key] = value
+                }
+                try {
+                    return constructor.callBy(args)
+                } finally {
+                    returnMap(args)
+                }
             }
         }
     }
